@@ -17,6 +17,10 @@ class XLSXWriter
 	protected $shared_strings = array();//unique set
 	protected $shared_string_count = 0;//count of non-unique references to the unique set
 	protected $temp_files = array();
+	
+	public static $default_width = '11.5';
+	private static $column_count = 0;
+	private static $column_config = array();
 
 	protected $current_sheet = '';
 
@@ -132,7 +136,22 @@ class XLSXWriter
 		$sheet->file_writer->write(    '</sheetView>');
 		$sheet->file_writer->write(  '</sheetViews>');
 		$sheet->file_writer->write(  '<cols>');
-		$sheet->file_writer->write(    '<col collapsed="false" hidden="false" max="1025" min="1" style="0" width="11.5"/>');
+		
+		if (count(self::$column_config) > 0 AND self::$column_count > 0) {
+			//Loop through columns
+			for ($i = 1; $i <= self::$column_count; $i++) {
+				if (isset(self::$column_config[$i])) {
+					//Custom settings for this column
+					if (self::$column_config[$i]["width"] != null) $width = self::$column_config[$i]["width"];
+					else $width = self::$default_width;
+					$sheet->file_writer->write(    '<col collapsed="false" hidden="false" max="' . $i . '" min="' . $i . '" style="0" width="' . $width . '"/>');
+				}
+				else $sheet->file_writer->write(    '<col collapsed="false" hidden="false" max="' . $i . '" min="' . $i . '" style="0" width="' . self::$default_width . '"/>'); //Default
+			}
+		}
+		else {
+			$sheet->file_writer->write(    '<col collapsed="false" hidden="false" max="1025" min="1" style="0" width="' . self::$default_width . '"/>');
+		}
 		$sheet->file_writer->write(  '</cols>');
 		$sheet->file_writer->write(  '<sheetData>');
 	}
@@ -154,6 +173,22 @@ class XLSXWriter
 		$sheet->file_writer->write('</row>');
 		$sheet->row_count++;
 		$this->current_sheet = $sheet_name;
+	}
+	
+	public function columnSetup($columnNumber, $options) {
+	
+		if ($columnNumber >= 0) {
+			self::$column_config[$columnNumber] = array(
+				"width" => $options["width"]
+			);
+		}
+	
+	}
+	
+	public function setColumnCount($colCount) {
+
+		if ($colCount > 0) self::$column_count = $colCount;
+	
 	}
 
 	public function writeSheetRow($sheet_name, array $row)
@@ -608,3 +643,5 @@ class XLSXWriter_BuffererWriter
 
 
 // vim: set filetype=php expandtab tabstop=4 shiftwidth=4 autoindent smartindent:
+
+?>
