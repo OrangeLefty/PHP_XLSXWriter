@@ -76,3 +76,13 @@ for($i=0; $i<50000; $i++)
 $writer->writeToFile('output.xlsx');
 echo '#'.floor((memory_get_peak_usage())/1024/1024)."MB"."\n";
 ```
+Quick example to change the first columns width, and shorten every other column
+```php
+//Write to file
+					XLSXWriter::$default_width = '8.5'; //Shorten default column width
+					$writer->setColumnCount(count($header)); //Script needs to know how many columns there are in order to set      individual column widths
+					$writer->columnSetup(1, array("width" => '30')); //Expand first column
+					
+					$writer->writeSheet($mySpreadSheetData, 'Export', $header);
+					echo $writer->writeToString();
+```
